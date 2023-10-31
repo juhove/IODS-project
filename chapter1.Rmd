@@ -9,5 +9,17 @@
 date()
 
 ```
-The text continues here.
+## Intro
+
+I have experience of programming in **Python**, **Fortran**, **C**, and **Matlab** and scripting in several languages, however, I have not used R that much. Also, my conding skills have been diminished in my time doing medicine. The syntax seems familiar in some ways. The RStudio looks useful and the Git integration is a nice modern way of version control. I would like to learn to use more R than SPSS and Stata as the latter are proprietary software and R is much more versatile. I found the course from the pool of courses suitable for doctoral studies. As I am missing 5 ECTS and the course is just that, I thought that this would be useful and fun.
+
+As I mentioned, the syntax has some similarities, especially with Matlab and perhaps LaTeX as well. It is always somewhat an effort to move from one language to another and try to remember the small things. Fortunately the bigger picture is quite the same as computers work as the way they do.
+
+***
+
+## GitHub repository
+
+Link to my IODS-project GitHub repository https://github.com/juhove/IODS-project
+
+
 
