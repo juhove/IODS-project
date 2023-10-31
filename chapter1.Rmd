@@ -21,5 +21,10 @@ As I mentioned, the syntax has some similarities, especially with Matlab and per
 
 Link to my IODS-project GitHub repository https://github.com/juhove/IODS-project
 
+### GitHub pages
+
+Link to my IODS-project GitHub course diary https://juhove.github.io/IODS-project/
+
+
 
 
