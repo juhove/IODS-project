@@ -1,13 +1,97 @@
-# Insert chapter 2 title here
+# Assigment 2, second week
 
 *Describe the work you have done this week and summarize your learning.*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+-   Describe your work and results clearly.
+-   Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
+-   Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
 
 ```{r}
 date()
 ```
 
-Here we go again...
+## 1.
+
+Read data that was writen as a CSV file in the previous exercise
+
+```{r}
+# Load libraries
+library(tidyverse)
+library(readr)
+library(gapminder)
+library(finalfit)
+library(dplyr)
+
+data_read_2014 <- read_csv("learning2014.csv")
+```
+
+Check the beginning of the data
+
+```{r}
+# Check the beginning of the data
+head(data_read_2014) 
+# Some more indepth information regarding the data (variable types)
+spec(data_read_2014)
+# Dimensions of the data as a vector
+dim_data_read_2014 <- dim(data_read_2014)
+dim_data_read_2014
+
+# Missing data, mean, sd, IQR, min/max values
+ff_glimpse(data_read_2014)
+```
+
+## 2.
+
+Plot basic histograms of the variables
+
+```{r}
+data_read_2014 %>% ggplot(aes(x = gender)) + geom_bar()
+
+# Binning the ages by ten years
+data_read_2014 %>% ggplot(aes(x = Age)) + geom_histogram(binwidth = 10)
+
+data_read_2014 %>% ggplot(aes(x = Attitude)) + geom_histogram(binwidth = 1)
+
+data_read_2014 %>% ggplot(aes(x = Deep)) + geom_histogram(binwidth = 1)
+
+data_read_2014 %>% ggplot(aes(x = Surf)) + geom_histogram(binwidth = 1)
+
+data_read_2014 %>% ggplot(aes(x = Stra)) + geom_histogram(binwidth = 1)
+
+data_read_2014 %>% ggplot(aes(x = Points)) + geom_histogram(binwidth = 1)
+```
+
+Plots show that
+
+Number of women is almost double compared to number of men.
+
+Age is skewed towards younger population (as with students is quite extected).
+
+Attitude and Strategic (Stra) approach look like normally distributed.
+
+Deep approach and surface approach distributions are a bit similar looking (higher counts towards 4.
+
+Points starts as normally distributed when starting from the left side (that might be expected for test scores), however, there are concentrations of higher points achieved between 27 and 32. 
+
+```{r}
+data_read_2014 %>% group_by(gender) %>% summarise_all(mean)
+data_read_2014 %>% group_by(gender) %>% summarise_all(sd)
+
+# Create information of age groups (Agegrp), 10 year intervals
+data_ageG <- data_read_2014 %>% mutate(Agegrp = cut(Age, breaks = seq(0,70, by = 10)))
+
+# Calculate mean of continuous variables diveded by age groups
+data_ageG %>% group_by(Agegrp) %>% select(-gender) %>% summarize_all(mean)
+
+# Calculate mean of continuous variables diveded by age groups and gender
+data_ageG %>% group_by(Agegrp, gender) %>% summarize_all(mean)
+
+
+```
+
+When divided by gender and age groups (perhaps the division 10-20 and 20-30 was not that informative with this data) I'm not sure if I see any kind of clear tendencies in Attitude, Deep, Stra, or Surf. With Points the youngest men in the data score clearly lowest, but other than that the results look similar.
+
+## 3.
+
+Explanatory variables: Age, Attitude, gender
+Dependent or outcome: Point
