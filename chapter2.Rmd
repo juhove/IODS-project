@@ -16,11 +16,11 @@ Read data that was writen as a CSV file in the previous exercise
 
 ```{r}
 # Load libraries
+suppressWarnings({
 library(tidyverse)
 library(readr)
-library(gapminder)
 library(finalfit)
-library(dplyr)
+library(dplyr)})
 
 data_read_2014 <- read_csv("learning2014.csv")
 ```
@@ -71,7 +71,7 @@ Attitude and Strategic (Stra) approach look like normally distributed.
 
 Deep approach and surface approach distributions are a bit similar looking (higher counts towards 4.
 
-Points starts as normally distributed when starting from the left side (that might be expected for test scores), however, there are concentrations of higher points achieved between 27 and 32. 
+Points starts as normally distributed when starting from the left side (that might be expected for test scores), however, there are concentrations of higher points achieved between 27 and 32.
 
 ```{r}
 data_read_2014 %>% group_by(gender) %>% summarise_all(mean)
@@ -91,7 +91,71 @@ data_ageG %>% group_by(Agegrp, gender) %>% summarize_all(mean)
 
 When divided by gender and age groups (perhaps the division 10-20 and 20-30 was not that informative with this data) I'm not sure if I see any kind of clear tendencies in Attitude, Deep, Stra, or Surf. With Points the youngest men in the data score clearly lowest, but other than that the results look similar.
 
-## 3.
+## 3. & 4.
 
-Explanatory variables: Age, Attitude, gender
-Dependent or outcome: Point
+Explanatory variables: Age, Attitude, gender Dependent or outcome: Points
+
+```{r}
+library(tidyverse) 
+library(purrr) 
+library(ggfortify)
+# Linear model fit
+fit_points <- data_read_2014 %>% lm(Points ~  Age +Attitude + gender, data = .)
+fit_points
+# Important values of the model from summary function (e.g. model performance)
+summary(fit_points)
+
+```
+
+According to this linear model gender and age were not statistically significant, but Attitude was p\<0.001 (Pr 8.34e-09). Multiple R-squared (model fit) was 0.2018.
+
+New try with just Attitude as the only explanatory variable
+
+```{r}
+fit_points2 <- data_read_2014 %>% lm(Points ~ Attitude, data = .)
+
+# Model parameters, model performance
+summary(fit_points2)
+
+```
+
+This yields a slightly lower (0.1906) Multiple R-squared, but the difference is small. This suggests that other than Attitude does not have much effect on the model performance.
+
+**Residuals** mean the difference between the model prediction and the actual values of Points.
+
+**Estimates** are the coefficients for the linear model.
+
+The first linear model here is in the following form Points = Intercept (Estimate) + Age\* (Estimate) + Attitude\* (Estimate) + gender\* (Estimate)
+
+The second linear model here is in the following form Points = Intercept (Estimate) + Attitude\* (Estimate)
+
+**Standard Error** is the standard error of the estimate. The standard error can be used to calculate the confidence intervals, e.g., 95% if the data is normally distributed and model assumptions hold, e.g., modeled value and the explanatory variable have indeed linear relationship.
+
+**t value** is Estimate divided by Standard error.
+
+**Pr(\>\|t\|)** is the p-value for the individual coefficients. If the probability is low enough (arbitrary, usually p\<0.05 or p\<0.01) we can reject the null hypothesis. In this case, the null hypothesis is that the coefficient (Estimate) is 0.
+
+**Multiple R-squared** is a measure of how well the model fits into the data (what proportion of the variance is explained by the model).
+
+The Estimate of Attitude in the linear model above is 3.5255. This would mean that the higher the value of Attitude, higher the Points. The Attitude means a numeral value of global attitude toward statistics. My interpretation of this is that students who score higher in the questions concerning attitudes towards statistics will eventually learn the subject better and score higher in the test (higher Points).
+
+In both models the Multiple R-squared values are close to each other (0.2018 vs. 0.1906). The bit higher goodness of fit in the first model with three explanatory variables is probably explained mainly by the Age that although not statistically significant (p = 0.159) does have some influence. When compared model with Age+Attitude vs. Attitude+Gender (not in the code), the former fits better.
+
+## 5. Diagnostic plots
+
+```{r}
+
+# Diagnostic plots (Age + Attitude + Gender vs. Points)
+autoplot(fit_points)
+# Diagnostic plots (Attitude vs. Points)
+autoplot(fit_points2)
+# Larger plot to check Cook's distance
+plot(fit_points,5)
+plot(fit_points2,5)
+```
+
+**Residuals vs. fitted** This plot is used to show if the residuals have non-linear patterns. As the model here is a linear model non-linear patterns would be a message that the type of model used here is a wrong one. There should be equal spread of points on the both sides of the horizontal line. No clear non-linear pattern is seen in models 1 and 2.
+
+**Normal Q-Q** Observations should be normally distributed around fitted line seen in these plots. Here the residuals diverge from the straight line in the left and in the right side of the plot. I think the plot look reasonable good in both cases.
+
+**Residuals vs. Leverage** The plot helps for finding outliers that can influence the model and model fit quite a lot. The model fit might improve if these outliers were excluded. Sure it is good to question what the excluded values are and it is appropriate to exclude them. The possible outliers should reside outside Cook's distance. As seen in the plots (and additional plots) the Cook's distance is outside the plotted field. I believe it is safe to say that the data used here have no influential outliers.
