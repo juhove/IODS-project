@@ -12,7 +12,7 @@ date()
 
 ## 1.
 
-Read data that was writen as a CSV file in the previous exercise
+Read data that was written as a CSV file in the previous exercise
 
 ```{r}
 # Load libraries
@@ -59,6 +59,13 @@ data_read_2014 %>% ggplot(aes(x = Surf)) + geom_histogram(binwidth = 1)
 data_read_2014 %>% ggplot(aes(x = Stra)) + geom_histogram(binwidth = 1)
 
 data_read_2014 %>% ggplot(aes(x = Points)) + geom_histogram(binwidth = 1)
+
+library(ggplot2)
+library(GGally)
+draw_plot <- ggpairs(data_read_2014, mapping = aes(col= gender, alpha = 0.3), lower = list(combo = wrap("facethist", bins = 20)))
+
+# draw the plot
+draw_plot
 ```
 
 Plots show that
