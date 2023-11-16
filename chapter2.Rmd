@@ -151,13 +151,24 @@ In both models the Multiple R-squared values are close to each other (0.2018 vs.
 ## 5. Diagnostic plots
 
 ```{r}
-
 # Diagnostic plots (Age + Attitude + Gender vs. Points)
 autoplot(fit_points)
 # Diagnostic plots (Attitude vs. Points)
 autoplot(fit_points2)
+```
+Larger plot to check Cook's distance
+
+(Age + Attitude + Gender vs. Points)
+
+```{r}
 # Larger plot to check Cook's distance
+# (Age + Attitude + Gender vs. Points)
 plot(fit_points,5)
+```
+
+(Attitude vs. Points)
+```{r}
+# (Attitude vs. Points)
 plot(fit_points2,5)
 ```
 

@@ -145,7 +145,7 @@ select_explanatory <- c("high_use", "Medu_char", "studytime_char", "higher", "fa
 
 #data_alc %>% select(all_of(explanatory)) %>% pivot_longer(-alc_use) %>% ggplot(aes(value, alc_use)) + geom_boxplot() + facet_wrap(~name, scale = "free", ncol = 3) + coord_flip()
 ```
-
+### Exploring the chosen variables using simple plots
 Some simple bar plots to see how the high use of alcohol corresponds to the categories of the chosen variables. Made mainly to support the next task (no. 4).
 ```{r}
 # Creating a bar plot with proportional values of high_use. 
@@ -154,7 +154,7 @@ data_alc %>% select(one_of(select_explanatory)) %>% pivot_longer(-high_use) %>% 
 
 ## 4 Cross tabulations
 
-Cross tabulations for the chosen variables vs. High Use of Alcohol. Comments after the tables.
+Cross tabulations for the chosen variables vs. High Use of Alcohol. Comments after tables.
 
 ```{r}
 # Cross tabs
@@ -162,22 +162,24 @@ Cross tabulations for the chosen variables vs. High Use of Alcohol. Comments aft
 suppressWarnings({library(sjPlot)})
 
 tab_xtab(var.row = data_alc$high_use, var.col = data_alc$famrel_char, title="High Use of Alcohol vs. Family relations", show.col.prc = TRUE)
+```
+Good family relations seem to have negative (well, one could argue that it's positive) on high_use on alcohol. Strangely enough though, the ones with the worst family conditions seems to fare just as good as the ones with the best family conditions. Otherwise the data is consistent, the better the family conditions less high use of alcohol. The famrel groups 1 and probably 2 are small (8 and 18 students) that effects the results. Not really sure if the hypothesis holds.
 
+```{r}
 tab_xtab(var.row = data_alc$high_use, var.col = data_alc$higher, title="High Use of Alcohol vs. Higher education aspirations", show.col.prc = TRUE)
+```
+Aspirations for higher education lowers the chance to have high use of alcohol. Hypothesis seems to hold. From cross-tabs it can be seen that the higher no subgroup is very small ($n=16$) compared to the yes group (n=354), which makes the results not so reliable.
 
+```{r}
 tab_xtab(var.row = data_alc$high_use, var.col = data_alc$Medu_char, title="High Use of Alcohol vs. Mother's education", show.col.prc = TRUE)
+```
+Mother's education does not have substantial effect on high use of alcohol, except that if mother does not have any education then students tend to use more alcohol. Again here the group 0 (no educatio) is small (n=3). After that the results are more or less the same. I think it's difficult to prove the hypothesis with these amount of students in group 0.
 
+```{r}
 tab_xtab(var.row = data_alc$high_use, var.col = data_alc$studytime_char, title="High Use of Alcohol vs. Study time", show.col.prc = TRUE)
 
 
 ```
-
-Good family relations seem to have negative (well, one could argue that it's positive) on high_use on alcohol. Strangely enough though, the ones with the worst family conditions seems to fare just as good as the ones with the best family conditions. Otherwise the data is consistent, the better the family conditions less high use of alcohol. The famrel groups 1 and probably 2 are small (8 and 18 students) that effects the results. Not really sure if the hypothesis holds.
-
-Aspirations for higher education lowers the chance to have high use of alcohol. Hypothesis seems to hold. From cross-tabs it can be seen that the higher no subgroup is very small ($n=16$) compared to the yes group (n=354), which makes the results not so reliable.
-
-Mother's education does not have substantial effect on high use of alcohol, except that if mother does not have any education then students tend to use more alcohol. Again here the group 0 (no educatio) is small (n=3). After that the results are more or less the same. I think it's difficult to prove the hypothesis with these amount of students in group 0.
-
 Study time seems to have some association with use of alcohol. The ones using more tend to study less. With cross-tabs the similar pattern can be seen.
 
 ## 5 Model fit
@@ -185,7 +187,6 @@ Study time seems to have some association with use of alcohol. The ones using mo
 Using finalfit package create univariable and multivariable tables Lower values (bad family relations, no aspiration for higher education, Mother has no education, least study time) will be the references.
 
 ```{r}
-
 high_use_mod <- glm(high_use ~ famrel_char + higher + Medu_char + studytime_char, data = data_alc, family = binomial)
 
 
@@ -199,12 +200,16 @@ data_alc %>% finalfit(dependent, explanatory, metrics = TRUE) -> high_use_mod2
 # Nicer looking table for knit and the html file
 knitr::kable(high_use_mod2[[1]], row.names=FALSE, align=c("l", "l", "r", "r", "r", "r"))
 knitr::kable(high_use_mod2[[2]], row.names=FALSE, col.names="")
+```
 
+### Odds ratio plot
+```{r}
 # Odds ratio plot
 data_alc %>% or_plot(dependent, explanatory, breaks = c(0.5, 1, 2, 5, 10, 25), table_text_size = 3.5, title_text_size = 16)
 
 ```
 
+### Analysis of odds ratios
 In univariable model the higher educational aspirations have p=0.019, however, when put into the multivariable model there is no statistical significant effect anymore. Probably due to low numbers of students how admitted low educational aspirations. Otherwise, the only statistically significant univariable model parameters were studytime 3 and 4.
 
 It looks that the study time variable is the only one with statistically significant effect on the low or high alcohol consumption. Here the groups 3 and 4 have negative odds rations, and the absolute values, which are $0.26$ and $0.25$ in multivariable model, are less than $1$. This suggests that the students who spend more time studying have lower odds for using high amounts of alcohol than the ones studying only $<2$ hours per week.
@@ -234,6 +239,10 @@ glm_pred <- glm_probs %>% mutate(pred = ifelse(probs>.5, "TRUE", "FALSE"))
 
 glm_pred$pred_lgl <- as.logical(glm_pred$pred)
 glm_pred <- cbind(data_alc, glm_pred)
+```
+
+### 2x2 cross-tabulation predicted vs. data
+```{r}
 # 2x2 cross-tabulation positives vs. negatives, confusion matrix
 # Predictions as columns, data (real values) as rows
 # Fill 0 might be problematic (missing values noted as 0 => false), however, here we have no missing values.
