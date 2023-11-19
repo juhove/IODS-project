@@ -47,6 +47,7 @@ ff_glimpse(data_join)
 # 5.
 
 # Didn't really get to where the instruction  "copy the solution from the exercise "3.3 The if-else structure" to combine the 'duplicated' answers in the joined data " pointed to and I was too lazy to write any own solution
+# UPDATE: Now I did find the Excercise Set 3, oh well, I'll leave this as is.
 
 # 6.
 

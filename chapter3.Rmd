@@ -2,6 +2,8 @@
 
 The analyses used in this chapter were somewhat known to me, however, the R packages and syntax are different from other languages. Thus, it is more than possible there would be a more elegant way of doing these analyses. I do like the markdown that's a combination of LaTeX and scripting.
 
+Actually, today 19th of Nov I learned something new about the course, which is that there is something called Excercise Set including instructions for the assignments. Until this point, I have mainly used Google and R manual pages. Thus, it might be that the solutions below might vary somewhat from the way things are done in the course's solutions. Maybe with the Assigment 4 I'll first have a look at the Excercise Set 4...
+
 ```{r}
 date()
 ```
@@ -265,4 +267,6 @@ roc_score # Print out AUC
 
 ```
 
-ROC curve can be seen above. AUC (=Area Under Curve) for the model (and predictions) is $0.70$, which is I think better than I anticipated. For random data (or uninformative classifier) the AUC should be $0.5$ (denoted but the diagonal line). Perfect model would have AUC value of $1$. Well, the model is better than random values.
+ROC curve can be seen above. ROC graph has Sensitivity on y-axis and Specificity (normally 1-Specificity on x-axis, in this graph x-axis is inverted) on x-axis. The diagonal line represent the uniformative classifier or model that's no better than random. The best model in this graph would have curve going straight up from $x = 1.0$ to $y = 1.0$ and continuing rightwards at $y = 1.0$.
+
+AUC (Area Under Curve) for the model (and predictions) is $0.70$, which is I think better than I anticipated. For random data (or uninformative classifier) the AUC should be $0.5$ (denoted but the diagonal line). Perfect model would have AUC value of $1$. Well, the model is better than random values.

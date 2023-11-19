@@ -418,7 +418,7 @@ use R Markdown syntax.</em></p>
 <pre class="r"><code># This is a so-called &quot;R chunk&quot; where you can write R code.
 
 date()</code></pre>
-<pre><code>## [1] &quot;Thu Nov 16 18:24:27 2023&quot;</code></pre>
+<pre><code>## [1] &quot;Sun Nov 19 14:23:37 2023&quot;</code></pre>
 <div id="intro" class="section level2">
 <h2>Intro</h2>
 <p>I have experience of programming in <strong>Python</strong>,
@@ -461,7 +461,7 @@ writing and reading R code as well as statistical methods.</li>
 advanced methods you are using.</li>
 </ul>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Thu Nov 16 18:24:27 2023&quot;</code></pre>
+<pre><code>## [1] &quot;Sun Nov 19 14:23:37 2023&quot;</code></pre>
 <div id="section" class="section level2">
 <h2>1.</h2>
 <p>Read data that was written as a CSV file in the previous exercise</p>
@@ -778,8 +778,15 @@ the R packages and syntax are different from other languages. Thus, it
 is more than possible there would be a more elegant way of doing these
 analyses. I do like the markdown that’s a combination of LaTeX and
 scripting.</p>
+<p>Actually, today 19th of Nov I learned something new about the course,
+which is that there is something called Excercise Set including
+instructions for the assignments. Until this point, I have mainly used
+Google and R manual pages. Thus, it might be that the solutions below
+might vary somewhat from the way things are done in the course’s
+solutions. Maybe with the Assigment 4 I’ll first have a look at the
+Excercise Set 4…</p>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Thu Nov 16 18:24:45 2023&quot;</code></pre>
+<pre><code>## [1] &quot;Sun Nov 19 14:23:52 2023&quot;</code></pre>
 <div id="data-import-and-check" class="section level2">
 <h2>2 Data import and check</h2>
 <pre class="r"><code># Load libraries
@@ -1074,7 +1081,7 @@ Comments after tables.</p>
 <pre class="r"><code># Cross tabs
 # Load library
 suppressWarnings({library(sjPlot)})</code></pre>
-<pre><code>## #refugeeswelcome</code></pre>
+<pre><code>## Install package &quot;strengejacke&quot; from GitHub (`devtools::install_github(&quot;strengejacke/strengejacke&quot;)`) to load all sj-packages at once!</code></pre>
 <pre class="r"><code>tab_xtab(var.row = data_alc$high_use, var.col = data_alc$famrel_char, title=&quot;High Use of Alcohol vs. Family relations&quot;, show.col.prc = TRUE)</code></pre>
 <table style="border-collapse:collapse; border:none;">
 <caption style="font-weight: bold; text-align:left;">
@@ -1178,7 +1185,7 @@ Total
 </td>
 </tr>
 <td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="7">
-χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.076
+χ<sup>2</sup>=8.466 · df=4 · Cramer’s V=0.151 · Fisher’s p=0.068
 </td>
 </tr>
 </table>
@@ -1367,7 +1374,7 @@ Total
 </td>
 </tr>
 <td style="text-align:right; font-size:0.9em; font-style:italic; padding:0.2cm;" colspan="7">
-χ<sup>2</sup>=12.231 · df=4 · Cramer’s V=0.182 · Fisher’s p=0.007
+χ<sup>2</sup>=12.231 · df=4 · Cramer’s V=0.182 · Fisher’s p=0.010
 </td>
 </tr>
 </table>
@@ -1763,13 +1770,17 @@ roc_score &lt;- roc(data_alc$high_use, alc_high_pred)</code></pre>
 ## 
 ## Data: alc_high_pred in 259 controls (data_alc$high_use FALSE) &lt; 111 cases (data_alc$high_use TRUE).
 ## Area under the curve: 0.7005</code></pre>
-<p>ROC curve can be seen above. AUC (=Area Under Curve) for the model
-(and predictions) is <span class="math inline">\(0.70\)</span>, which is
-I think better than I anticipated. For random data (or uninformative
-classifier) the AUC should be <span class="math inline">\(0.5\)</span>
-(denoted but the diagonal line). Perfect model would have AUC value of
-<span class="math inline">\(1\)</span>. Well, the model is better than
-random values.</p>
+<p>ROC curve can be seen above. ROC graph has Sensitivity on y-axis and
+Specificity (normally 1-Specificity on x-axis, in this graph x-axis is
+inverted) on x-axis. The diagonal line represent the uniformative
+classifier or model that’s no better than random. The best model in this
+graph would have curve going straight up from <span class="math inline">\(x = 1.0\)</span> to <span class="math inline">\(y
+= 1.0\)</span> and continuing rightwards at <span class="math inline">\(y = 1.0\)</span>.</p>
+<p>AUC (Area Under Curve) for the model (and predictions) is <span class="math inline">\(0.70\)</span>, which is I think better than I
+anticipated. For random data (or uninformative classifier) the AUC
+should be <span class="math inline">\(0.5\)</span> (denoted but the
+diagonal line). Perfect model would have AUC value of <span class="math inline">\(1\)</span>. Well, the model is better than random
+values.</p>
 <hr />
 <p>(more chapters to be added similarly as we proceed with the
 course!)</p>
