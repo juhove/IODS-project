@@ -1,0 +1,410 @@
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 4, Analysis Assigment 4
+
+This week the assigments were again kinda familiar to me. I have used k-means clustering earlier, but not that many times as all kinds of regression analysis. Again, the R syntax is new. I had issues with cross tabulation data types. Finally, Google's AI Bard gave nice hints what to do and now it seems to work. AI tools seem to make coding much more efficient.
+
+```{r}
+date()
+```
+
+```{r}
+# Load libraries
+suppressWarnings({
+library(tidyverse)
+library(readr)
+library(finalfit)
+library(dplyr)
+library(MASS)
+library(corrplot)
+  })
+
+suppressWarnings({
+library(ggplot2)
+library(GGally)})
+```
+
+## 2 and 3
+
+```{r}
+
+# Load data
+data("Boston")
+
+# Data description
+# Check the beginning of the data
+head(Boston) 
+# Some more indepth information regarding the data (variable types)
+str(Boston)
+# Dimensions of the data as a vector
+dim_Boston <- dim(Boston)
+dim_Boston
+
+# Summary of the whole tibble, however, below I use ff_glimpse, I think it is easier to read.
+summary(Boston)
+
+# Missing data
+# mean, sd, IQR, min/max values for appropriate variable types (numbers)
+# number of categorical variables (leves_n) for charcter data
+# Prints out the variable names as well. Data will be in two data frames: fisrt will have the information regarding the numeral value data and the second the variables that have character data.
+ff_glimpse(Boston)
+```
+
+Boston tibble had 14 variables and 506 observation (rows). All variables
+are numbers either real numbers or integers. Data is about the housing
+values in the city of Boston in the US. Each row represents a Boston
+suburb or town. \*\*\* \### Data description
+<https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html>
+
+Format This data frame contains the following columns:
+
+crim per capita crime rate by town.
+
+zn proportion of residential land zoned for lots over 25,000 sq.ft.
+
+indus proportion of non-retail business acres per town.
+
+chas Charles River dummy variable (= 1 if tract bounds river; 0
+otherwise).
+
+nox nitrogen oxides concentration (parts per 10 million).
+
+rm average number of rooms per dwelling.
+
+age proportion of owner-occupied units built prior to 1940.
+
+dis weighted mean of distances to five Boston employment centres.
+
+rad index of accessibility to radial highways.
+
+tax full-value property-tax rate per \$10,000.
+
+ptratio pupil-teacher ratio by town.
+
+black
+
+$1000\times(B_k−0.63)^2$, where $B_k$ is the proportion of blacks by
+town.
+
+lstat lower status of the population (percent).
+
+medv median value of owner-occupied homes in \$1000s.
+
+------------------------------------------------------------------------
+
+```{r}
+# Distributions and correlation between variables, quite a big plot with small graphs
+Boston_pairs <- ggpairs(Boston)
+Boston_pairs
+
+```
+
+```{r}
+# Correlation matrix
+correlation_Boston <- cor(Boston)
+# Another correlation representation of correlation with colored circles
+corrplot(correlation_Boston, method="circle")
+
+```
+
+About distributions
+
+Age distribution is towards higher ages mean $69$ years, median $78$
+years. Pupil-to-teacher ratio (pratio) shoots up, clearly not uniform
+around Boston. At some areas houses seem to be huge compared to other as
+(rm) rooms per dwelling peaks. Some areas some strong proportion of
+black ethnicity and other areas don't have. Only variable that remotely
+looking normally distributed at a glance is rm average number of rooms
+per dwelling, however, taken the nature of that information, it is just
+a coincidence.
+
+-   Highest (simple) correlations can be found between
+
+-   Age vs. distance to five Boston employment centres $r = 0.731$
+
+-   Lower status of the population vs. Median value of owner-occupied
+    homes $r=0.738$
+
+-   Distance to five Boston employment centres vs. Nitrogen oxides
+    concentration $r=0.769$
+
+-   Full-value property-tax rate vs. Index of accessibility to radial
+    highways $r=0.910$
+
+It looks like that some areas are more polluted that are closer to
+industry (makes sense). Also, it looks that some areas do have huge
+houses compared to other and no wonder that those areas correlate with
+higher median values of owner-occupied homes.
+
+## 4. Scaling the dataset
+
+```{r}
+# Scaling (column_value - column_mean) / column_sd using scale function
+# Data frame works better, otherwise output is simpler matrix
+Boston_scaled <- as.data.frame(scale(Boston))
+# Checking out the new table
+head(Boston_scaled)
+# Some summary values of the new table
+summary(Boston_scaled)
+```
+
+All values will have mean value of $0$ and standard deviation of $1$ =\>
+standardized dataset.
+
+```{r}
+# Creating a factor variable out of crime rate using the quantiles as the break points
+
+Boston_scaled$crim <- as.numeric(Boston_scaled$crim)
+# Check out the current values
+summary(Boston_scaled$crim)
+# Crim quantiles
+Boston_crim_bins <- quantile(Boston_scaled$crim)
+Boston_crim_bins
+```
+
+### Creating categorical variables
+
+```{r}
+# Create categorical variable with labels corresponding to the quantiles
+crime <- cut(Boston_scaled$crim, breaks = Boston_crim_bins, labels = c("low","med_low","med_high","high"), include.lowest = TRUE)
+
+# Removing original crim variable from the Boston_scaled tibble
+Boston_scaled <- dplyr::select(Boston_scaled, -crim)
+
+# Adding the new categorical data
+Boston_scaled <- data.frame(Boston_scaled, crime)
+```
+
+### Creating the training and test data
+
+```{r}
+# Dividing the dataset training/test 80/20 
+
+# Number of rows
+dim_Boston[1]
+
+# Sample size 80%, choose randomly 80% indexed
+ind <- sample(dim_Boston[1], size = dim_Boston[1]*0.8)
+
+# Training set out of Boston_scaled
+train <- Boston_scaled[ind,]
+
+
+```
+
+## 5 Linear discriminant analysis using training data
+
+Caterogical crime rate (crime) as target variable, all other variables
+as predictor variables.
+
+```{r}
+# LDA as crime as the target variable  in the training data
+lda.fit <- lda(crime ~ ., data=train)
+# Print out the lda results
+lda.fit
+
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  graphics::arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# Classes to numerical values
+classes <- as.numeric(train$crime)
+
+# Drawing LDA biplot
+plot(lda.fit, dimen = 2)
+lda.arrows(lda.fit, myscale = 2.5)
+```
+
+It's kinda hard to interpret the plot. There might be a another solution
+as well. Let's try that.
+
+```{r}
+suppressWarnings({
+library(devtools)
+library(ggord)
+  })
+ggord(lda.fit, train$crime, arrow = 1)
+
+```
+
+At least from the latter the groups are easier to see.
+
+## 6 Test set, predictions
+
+### Test set
+
+```{r}
+
+# Test set out of Boston_scaled
+test <-Boston_scaled[-ind,]
+
+# Correct classes that will be removed from the test data
+test_correct_classes <- as.data.frame(test$crime)
+# Removing the correct classes
+test <- dplyr::select(test, -crime)
+
+
+```
+
+### Predicting
+
+```{r}
+# Predict classes with test data (20%) of the whole data
+lda.pred <- predict(lda.fit, newdata = test)
+
+# I had trouble of getting the table function to work, it helped to convert the data frames into vectors that is below
+test_pred_classes <- as.data.frame(lda.pred$class)
+
+test_correct_classes_v <- unlist(test_correct_classes)
+test_pred_classes_v <- unlist(test_pred_classes)
+
+# Cross tabulating the results on crime rate
+table(correct = test_correct_classes_v, predicted = test_pred_classes_v)
+```
+Cross tabulation of the crime rate predicted values using LDA vs. the correct values from the test data (extracted earlier).
+
+Number of correct predictions is low $n=22$, med_low $n=15$, med_high $n=15$, and high $n=26$. Altogether $\frac{78}{102}=0.76$.  
+
+Most the errors in the model prediction happend with group med_low predicted as low $n=9$ and med_high group predicted as med_low $n=6$.
+
+76% success rate is okay, but not good I would say. The training data is small as is the test data, so better accuracy would be achieved using larger data sets. At least that's my hypothesis.
+
+## 7 K-means Clustering
+
+```{r}
+# Boston data already loaded, standardization again as the Boston_scaled has been modified
+
+Boston_scaled2 <- as.data.frame(scale(Boston))
+Boston_scaled2$crim <- as.numeric(Boston_scaled2$crim)
+
+# Euclidean distance matrix
+dist_eu <- dist(Boston_scaled2, method = "euclidean")
+summary(dist_eu)
+
+# Manhattan distance matrix
+dist_man <- dist(Boston_scaled2, method = "manhattan")
+summary(dist_man)
+```
+
+```{r}
+set.seed(13)
+```
+
+### K-means clustering with 4 cluster centers
+```{r}
+# k-means clustering
+km <- kmeans(Boston_scaled2, centers = 4)
+
+pairs(Boston_scaled2[1:6], col = km$cluster)
+pairs(Boston_scaled2[6:10], col = km$cluster)
+pairs(Boston_scaled2[10:14], col = km$cluster)
+```
+
+### K-means clustering with 3 cluster centers
+```{r}
+km <- kmeans(Boston_scaled2, centers = 3)
+
+pairs(Boston_scaled2[1:6], col = km$cluster)
+pairs(Boston_scaled2[6:10], col = km$cluster)
+pairs(Boston_scaled2[10:14], col = km$cluster)
+```
+I think it's quite difficult to see from these plots what would be the optimal number of clusters. So, let's move to the next step to determine the optimal value using total of wihin cluster sum of squares (TWCS).
+
+
+### Determining the k
+
+Determining the optimal number of cluster centers from 1 to 10 using TWCS.
+
+```{r}
+set.seed(123)
+
+# Setting maximum number of clusters to 10.
+k_max <- 10
+
+# Calculating TWCSS
+twcss <- sapply(1:k_max, function(k){kmeans(Boston_scaled2, k)$tot.withinss})
+
+# Plotting the TWCSS vs. number of clusters
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+```
+
+The optimal number of cluster centers is where the TWCSS drops rapidly.
+In the plot above there seems to be two possible linear trends that
+could fit there. One $k \in [ 1:2]$ and the other $k \in [2:10]$. Thus,
+\$ k = 2\$ seems to be the optimal number of clusters.
+
+```{r}
+# K-means with the supposedly optimal 2 cluster centers
+km <- kmeans(Boston_scaled2, centers = 2)
+
+```
+
+### Pairwise plots with k-means and two cluster centers
+
+```{r}
+# ggpairs seems to give nicer looking graphs
+km_ggpairs <- ggpairs(Boston_scaled2, aes(color=as.factor(km$cluster), alpha = 0.5))
+print(km_ggpairs, progress = F)
+
+
+ggpairs(Boston_scaled2, columns=1:6, aes(color=as.factor(km$cluster), alpha = 0.5))
+ggpairs(Boston_scaled2, columns=6:10, aes(color=as.factor(km$cluster), alpha = 0.5))
+ggpairs(Boston_scaled2, columns=10:14, aes(color=as.factor(km$cluster), alpha = 0.5))
+```
+
+The plot with all the pairs is nice in that way that all pairs are
+there, however, it's really cramped and there ain't much of a chance to
+see the correlations. Nevertheless, there's some information to be
+gathered.
+
+**Good separation with two classes can be seen in variables:**
+
+-   indus = proportion of non-retail business acres per town.
+
+-   nox = nitrogen oxides concentration (parts per 10 million).
+
+-   tax = full-value property-tax rate per \$10,000.
+
+**A resonable good separation with two classes in variables:**
+
+-   pratio = pupil-teacher ratio by town.
+
+-   lstat = lower status of the population (percent).
+
+-   medv (some separation) = median value of owner-occupied homes in
+    \$1000s.
+
+-   rad = index of accessibility to radial highways.
+
+**No separation between two classes in variables:**
+
+-   zn = proportion of residential land zoned for lots over 25,000
+    sq.ft.
+
+-   chas = Charles River dummy variable (= 1 if tract bounds river; 0
+    otherwise).
+
+-   rm = average number of rooms per dwelling.
+
+-   black = $1000 \times (B_k−0.63)^2$, where $B_k$ is the proportion of
+    blacks by town.
+    
+I think the best clustering with the two cluster centers can be seen in tax variable. It would seem that in Boston there are those who have lots of property to tax and those who don't have. The middle is kinda empty. Also, there seems to be places with high non-retail businesses and some places with low number. 
+
+When looking at the correlations most are low.
+
+-   tax vs. rad correlate highly in cluster no $2$ $r=0.869$
+
+-   rm vs. medv correlate highly in cluster no $1$ $r=0.893$
+
+It was seen earlier already that the tax and rad correlated highly. Perhaps this has to do with some highways been close to some expensive areas.
+
