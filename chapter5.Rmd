@@ -1,0 +1,25 @@
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Chapter 5, Analysis Assigment 5
+
+
+
+```{r}
+date()
+```
+
+```{r}
+# Load libraries
+suppressWarnings({
+library(tidyverse)
+library(readr)
+library(finalfit)
+library(dplyr)
+library(MASS)
+library(corrplot)
+  })
+
