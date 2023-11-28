@@ -95,7 +95,7 @@ Format This data frame contains the following columns:
 
 ------------------------------------------------------------------------
 
-```{r}
+```{r out.width="200%"}
 # Distributions and correlation between variables, quite a big plot with small graphs
 Boston_pairs <- ggpairs(Boston)
 Boston_pairs
