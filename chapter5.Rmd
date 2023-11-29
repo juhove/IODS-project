@@ -71,7 +71,7 @@ human_pca_pr
 library(factoextra)
 fviz_eig(human_pca, addlabels = TRUE)
 ```
-As seen here $99%$ of the variability is explained by principal component 1. This makes the analysis rather boring and as seen in the following biplot the values cramp up on the upper right corner. This makes difficult to see differences, hence the standardization in the next subsection.
+As seen here $99\%$ of the variability is explained by principal component 1. This makes the analysis rather boring and as seen in the following biplot the values cramp up on the upper right corner. This makes difficult to see differences, hence the standardization in the next subsection.
 
 ```{r out.width="200%"}
 # Axis lables
@@ -156,7 +156,7 @@ The variables having the high cos2 values represent the variables that are havin
 
 
 ## 4. Interpretation of the first two principal components
-Variables that have mostly to do with PC1 variance
+Variables that have mostly to do with **PC1** variance
 
 -   Maternal Mortality
 
@@ -166,7 +166,7 @@ Variables that have mostly to do with PC1 variance
 
 -   Adolescent Birth Rate
 
-Variables that have mostly to do with PC2 variance
+Variables that have mostly to do with **PC2** variance
 
 -   Labour Force Participation Rate female / male ratio
 
