@@ -1,12 +1,4 @@
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 # Chapter 5, Analysis Assigment 5
-
-
 
 ```{r}
 date()
@@ -21,5 +13,255 @@ library(finalfit)
 library(dplyr)
 library(MASS)
 library(corrplot)
+library(GGally)
   })
+```
 
+## 1. Data structure fixing and visualization of the data
+
+```{r}
+# Load data
+human <- read_csv("data/human.csv")
+```
+
+```{r}
+# Moving the country names to row names
+human_ <- column_to_rownames(human, "Country")
+
+# Correlation matrix
+human_cor <- cor(human_)
+
+# Correlation plot
+corrplot(human_cor)
+
+```
+
+A version of correlation plot is shown above. Let's plot another version of correlation plot as well with less colors and more numbers.
+
+ 
+
+```{r}
+# Another way to look at the correlations and distributions
+ggpairs(human_, progress = FALSE)
+```
+
+About distributions. Education expectancy female/male ratio there are countries that are close to 1 and when deviating from 1, there are more of those where men have better access to education than women. Fortunately for the world, life expectancy is skewed to the right that means most of the countries are on the higher spectrum. Conversely, maternal mortality is mainly located on the smaller side of the graph, which is a good thing.
+
+Values that correlate highly ($r > |0.7|$)
+-   Maternal Mortality and Life Expectancy $r = -0.857$
+-   Life Expectancy and Education expectancy $r = 0.789$
+-   Maternal Mortality and Adolescent Birth Rate $r = 0.759$
+-   Adolescent Birth Rate and Education expectancy  $r = -0.704$
+
+GNI correlates or at least associates with Education expectancy, life expectancy, maternal mortality, and adolescent birth rate, however, the correlation is $<|0.7|$.
+
+One can see that the "good things" go hand in hand. That is longer the life, one has better education for women and less maternal mortality (that directly effects life expectancy as mothers are younger women). Also, in places where maternal mortality is high, the mothers are younger as they are having children instead of studying for instance. 
+
+## 2. Principal component analysis (PCA)
+```{r}
+# PCA
+human_pca <- prcomp(human_)
+# Summary of the PCA
+human_pca_s <- summary(human_pca)
+# Rounded percentages of variance
+human_pca_pr <- round(1*human_pca_s$importance[2, ], digits = 5)
+# Print out the rounded summary percentages 
+human_pca_pr
+# Library for graph regarding the variability
+library(factoextra)
+fviz_eig(human_pca, addlabels = TRUE)
+```
+As seen here $99%$ of the variability is explained by principal component 1. This makes the analysis rather boring and as seen in the following biplot the values cramp up on the upper right corner. This makes difficult to see differences, hence the standardization in the next subsection.
+
+```{r out.width="200%"}
+# Axis lables
+pc_lab <- paste0(names(human_pca_pr), " (", human_pca_pr)
+
+# Biplot of the PCA representation and the original values
+# Axis labels from pc_lab
+biplot(human_pca, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```
+As can be seen in the biplot up there, it's quite difficult to make any differences from it. This was anticipated as the PC1 contributes $99\%$ of the variability.
+
+With biplot, it is possible to visualize the similarities and dissimilarities between the samples, and it further shows the impact of each attribute on each of the principal components. 
+
+Some biplot properties:
+
+-   Variables grouped together are positively correlated to each other. 
+-   Higher the distance between the variable and the origin, the better represented the variable is.
+-   Variables that are negatively correlated are displayed to the opposite sides of the biplot's origin.
+
+
+```{r out.width="200%"}
+# An another type of graph
+fviz_pca_var(human_pca)
+```
+Well, this did not work too well. Let's see how does it work with standardized data.
+
+
+## 3. Standardized variables PCA
+
+```{r}
+# Standardizing the variables
+human_std <- scale(human_)
+
+# PCA
+human_std_pca <- prcomp(human_std)
+# Summary of the PCA
+human_std_pca_s <- summary(human_std_pca)
+# Rounded percentages of variance
+human_std_pca_pr <- round(1*human_std_pca_s$importance[2, ], digits = 5)
+# Print out the rounded summary percentages 
+human_std_pca_pr
+# Graph about the same data = Scree plot
+fviz_eig(human_std_pca, addlabels = TRUE)
+```
+
+Here the different principal components are more "evenly" distributed. Principal component 1 accounts $53.6\%$ of variability and principal component 2 $16.2\%$ of variability. Together PC1 and PC2 constitute of $69.8\%$ of variablity.
+
+The standardized values are important within the principal component analysis as the original predictors may have different scales (as they do in this dataset). The un-normalized data will lead to the dependence of a principal component (as seen earlier) \url{https://www.analyticsvidhya.com/blog/2016/03/pca-practical-guide-principal-component-analysis-python/}.
+
+```{r out.width="200%"}
+# Axis labels
+pc_lab_std <- paste0(names(human_std_pca_pr), " (", human_std_pca_pr, "%)")
+
+# Biplot of the PCA representation of the standardized values and the original values
+# Axis labels from pc_lab_std
+biplot(human_std_pca, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab_std[1], ylab = pc_lab_std[2])
+```
+Again, the graphs show that Maternal Mortality and Adolescent Birth Rate correlate positively with each other and negatively with Education Expectancy, Life Expectancy and GNI. Education Expectancy, Life Expectancy and GNI correlate positively with each other.
+
+It can be seen that the Maternal Mortality and Adolescent Birth Rate have higher values within African nations, e.g., Sierra Leon and Burkina Faso, whereas the higher life and education expensiveness concentrate on more with Western highly industrialized nations. The countries from the Middle-east are on the bottom which signifies that there the workforce constitutes of men much more than women.
+
+Let's combine Cos2 analysis with biplot.
+
+```{r out.width="200%"}
+# An another type of graph = correlation circle + Cos2 values
+
+fviz_pca_var(human_std_pca, col.var = "cos2",
+            gradient.cols = c("black", "orange", "green"),
+            repel = TRUE, xlab = pc_lab_std[1], ylab = pc_lab_std[2])
+
+```
+The upper graph visualizes (with Cos2 values) how much each variable is represented in a given component. A low value mean that the variable is not perfectly represented by that component and a high value means a good representation of the variable on that component (PC1 and PC2 in this case). It is combined with biplot described earlier.
+
+-   High cos2 attributes are colored in green: Maternal Mortality, Life Expectancy, and Education Expectancy
+
+-   Mid cos2 attributes have an orange color: Adolescent Birth Rate and Labour Force Participation Rate female / male ratio
+
+-   Low cos2 attributes have a black color: Percent Representation in Parliament (Female), GNI, and Education Expectancy female / male ratio
+
+
+The variables having the high cos2 values represent the variables that are having good representation within the principal components (1&2).
+
+
+## 4. Interpretation of the first two principal components
+Variables that have mostly to do with PC1 variance
+
+-   Maternal Mortality
+
+-   Life Expectancy
+
+-   Education Expectancy
+
+-   Adolescent Birth Rate
+
+Variables that have mostly to do with PC2 variance
+
+-   Labour Force Participation Rate female / male ratio
+
+-   Percent Representation in Parliament (Female)
+
+It would seem that the principal component analysis digs out two types of groups of variables that are important: group 1 has to do with maybe more individual level (life and health of individuals) and group 2 has to do with more societal impacts (labor market and politics).
+
+Countries divide here into four quadrants 
+
+-   upper-left = Western countries with high standard of living, more women in parliament and in labor market
+
+-   upper-right: countries mostly within Africa with challenges in maternal mortality and young mothers, but women engaged in the society
+
+-   lower-left: high-GDP Muslim countries with low participation of women in society (politics and labor market)
+
+-   lower-right: high-GDP Muslim countries with low participation of women in society (politics and labor market), many of them having some sort of internal strife, e.g., Afghanistan
+
+
+## 5. Tea data
+
+### Data loading and description
+
+```{r}
+# Load data
+tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+# Load libraries
+library(tidyr)
+
+# ---- Smaller dataset with just couple of columns (factorial variables)
+
+# column names to keep in the dataset
+
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+
+# select the 'keep_columns' to create a new dataset
+suppressWarnings({
+tea_time <- dplyr::select(tea, keep_columns)})
+
+# look at the summaries and structure of the data tea dataset
+names(tea)
+head(tea) # 6 first rows
+```
+
+Variables and their possible values within tea dataset
+```{r}
+str(tea) # Variables, factors and their possible values
+
+dim(tea) #Dimensions 300x36
+```
+Variables and their possible values within tea_time (reduced) dataset
+```{r}
+str(tea_time) # Variables, factors and their possible values
+
+dim(tea_time) #Dimensions 300x6
+```
+
+
+### Multiple Correspondence Analysis
+```{r}
+# Even more libraries 
+suppressWarnings({
+library(FactoMineR) })
+
+# Well, clearly something is not working with all of the columns, different data types?
+#mca <- MCA(tea, graph = FALSE)
+
+# MCA with smaller number of columns
+mca_time <- MCA(tea_time, graph = FALSE)
+
+# summary of the model
+summary(mca_time)
+
+```
+The summary states that the Dimensions 1 & 2 have $15.238\%$ and  $14.232\%$ of variance respectively. Altogether there are 11 dimensions.
+
+Plotting the results of tea_time (reduced) dataset
+```{r out.width="200%"}
+# Plotting the results, biplot
+plot(mca_time, invisible=c("ind"), graph.type = "classic")
+```
+
+
+```{r out.width="200%"}
+fviz_mca_biplot(mca_time, repel = FALSE, ggtheme = theme_minimal())
+```
+Seems that 300 observations are too many for this representation.
+
+```{r out.width="200%"}
+fviz_mca_var(mca_time, col.var = "contrib", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE, ggtheme = theme_minimal())
+
+```
+Here's another iteration of MCA plots. This plot gives some idea of what poles of the dimensions the categories are actually contributing to. 
+
+Some observations:
+
+-   Categories unpacked and tea shop have an important contribution to the positive pole of the first dimension
+
+-   Combined category chain store+tea shop has an important contribution to the positive pole of the second dimension
