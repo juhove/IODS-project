@@ -1,5 +1,7 @@
 # Chapter 5, Analysis Assigment 5
 
+Principle Component Analysis and Multiple Correspondence Analysis are not that familiar to me. I think I never understood the methods too well. I think I got some more insight into the methods, but still I feel like lacking fundamental understanding.
+
 ```{r}
 date()
 ```
@@ -185,7 +187,7 @@ Countries divide here into four quadrants
 -   lower-right: high-GDP Muslim countries with low participation of women in society (politics and labor market), many of them having some sort of internal strife, e.g., Afghanistan
 
 
-## 5. Tea data
+## 5. Tea data, MCA
 
 ### Data loading and description
 
@@ -247,17 +249,28 @@ Plotting the results of tea_time (reduced) dataset
 # Plotting the results, biplot
 plot(mca_time, invisible=c("ind"), graph.type = "classic")
 ```
+Horizontal axis (Dimension 1) has to do with more refined (some might say elitist) way of drinking tea when going towards right (left: chain store / tea bags - right: tea shop / unpackaged).
+
+Vertical axis (Dimension 2) has to do with perhaps in which kind of place the tea is consumed: store type, lunch or not. I'm not really sure about this.
 
 
 ```{r out.width="200%"}
 fviz_mca_biplot(mca_time, repel = FALSE, ggtheme = theme_minimal())
 ```
-Seems that 300 observations are too many for this representation.
+Seems that 300 observations are too many for this representation. Some groupings can be seen:
+
+-   Unpackaged, tea shop, green tea "party"; low right. These guys vary the most.
+
+-   Tea shop+ chain store, lemon, black, lunch or not => anything goes; high center-right
+
+-   Earl Grey, milk, sugar, tea bag, chain store people; center left
 
 ```{r out.width="200%"}
 fviz_mca_var(mca_time, col.var = "contrib", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE, ggtheme = theme_minimal())
 
 ```
+
+
 Here's another iteration of MCA plots. This plot gives some idea of what poles of the dimensions the categories are actually contributing to. 
 
 Some observations:
