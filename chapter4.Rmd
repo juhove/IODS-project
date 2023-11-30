@@ -4,7 +4,7 @@
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Chapter 4, Analysis Assigment 4
+# Chapter 4, Analysis Assignment 4
 
 This week the assigments were again kinda familiar to me. I have used k-means clustering earlier, but not that many times as all kinds of regression analysis. Again, the R syntax is new. I had issues with cross tabulation data types. Finally, Google's AI Bard gave nice hints what to do and now it seems to work. AI tools seem to make coding much more efficient.
 

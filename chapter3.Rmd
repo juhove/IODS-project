@@ -1,4 +1,4 @@
-# Chapter 3, Analysis Assigment 3
+# Chapter 3, Analysis Assignment 3
 
 The analyses used in this chapter were somewhat known to me, however, the R packages and syntax are different from other languages. Thus, it is more than possible there would be a more elegant way of doing these analyses. I do like the markdown that's a combination of LaTeX and scripting.
 

@@ -1,4 +1,4 @@
-# Chapter 5, Analysis Assigment 5
+# Chapter 5, Analysis Assignment 5
 
 Principle Component Analysis and Multiple Correspondence Analysis are not that familiar to me. I think I never understood the methods too well. I think I got some more insight into the methods, but still I feel like lacking fundamental understanding.
 
