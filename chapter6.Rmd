@@ -1,0 +1,340 @@
+# Chapter 6, Analysis Assignment 6
+
+Although I have been working with longitudinal data a lot, I had bunch of troubles with this assignment. I guess they were mainly technical. Thus, the second part with BPRS data is not finished (plots not done and not much interpretation) and there might be some things missing from the first part as well.
+
+
+```{r}
+date()
+```
+
+```{r}
+# Load libraries
+suppressWarnings({
+library(tidyverse)
+library(readr)
+library(finalfit)
+library(dplyr)
+library(MASS)
+library(corrplot)
+library(GGally)
+library(ggplot2)})
+```
+
+## Load and arrange data using meet_and_repeat.r
+
+
+```{r}
+# Load and arrange data using the earlier r code
+source("meet_and_repeat.r")
+```
+
+
+## 1. RATS data
+
+```{r}
+# Check the names and data types in dataframe rats_long
+names(rats_long)
+str(rats_long) # appropriate variables still as factors
+
+```
+### Plots
+
+```{r out.width="200%"}
+# Time on x-axis and rats on y-axis rats body weight
+ggplot(rats_long, aes(x= time, y = rats, linetype = ID)) + geom_line() + scale_linetype_manual(values = rep(1:10, times=4)) +  
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(rats_long$rats), max(rats_long$rats)), name = "rats' weight(g)")
+```
+Observations
+
+-   Group 1 has the lowest weights in the beginning and in the end of observation period. Slight upwards trend in weights. One clearly lighter rat.
+
+-   Group 2 is mainly in the middle in weights, however, there's one rat that dwarfs all others in this data. Upwards trend showing as well.
+
+-   Group 3 has the heaviest rats in general. Again upwards trend seen.
+
+```{r out.width="200%"}
+# Grouping by time and standardization of rats (weight)
+
+rats_long <- rats_long %>% group_by(time) %>% mutate(stdrats = scale(rats)) %>% ungroup()
+rats_long <- rats_long %>% group_by(Group, time) %>% mutate(stdrats_G = scale(rats)) %>% ungroup()
+names(rats_long)
+summary(rats_long) # stdrats mean 0
+ff_glimpse((rats_long)) # stdrats sd 1.0 as should be
+
+
+```
+### Standardized plot
+```{r out.width="200%"}
+# Time on x-axis and rats on y-axis rats body weight standardized
+ggplot(rats_long, aes(x= time, y = stdrats, linetype = ID)) + geom_line() + scale_linetype_manual(values = rep(1:10, times=4)) +  
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(name = "standardized rats' weight")
+
+```
+If I understand the plot above correctly, most of the rats' weights stay about the same in relation to the mean weight of all rats in certain time step (sort of derivative of weight). Some rats though won't put up that much weight than others even though their starting weight was higher, e.g., solid line in Group 2. The heavy weight champion rat in Group 2 is growing fast as well as almost all other rats in Group 2. Group 1 stays the same during the observation period and in general rats in Group 3 can grow that fast.
+
+### Standardized (inside groups) plot 
+```{r out.width="200%"}
+ggplot(rats_long, aes(x= time, y = stdrats_G, linetype = ID)) + geom_line() + scale_linetype_manual(values = rep(1:10, times=4)) +  
+  facet_grid(. ~ Group, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(name = "standardized rats' weight in its group")
+```
+The figure above takes account the groups as well as the time. This means that the three plots aren't directly comparable. Smaller changes inside the groups are now seen. They show similar patterns in group 2 and 3 as in the earlier plot. In Group 1 plot the small changes can be seen and one can conclude that the weights vary, but in the end are comparable. One outlier in the bottom of the plot.
+
+### Standard error of mean plot
+
+```{r}
+
+rats_long_se <- rats_long %>% group_by(Group, time) %>% 
+  summarise( mean = mean(rats), se = sd(rats)/sqrt(length(rats))) %>% ungroup()
+
+# Glimpse data
+glimpse(rats_long_se)
+```
+```{r out.width="200%"}
+ggplot(rats_long_se, aes(x = time, y = mean, linetype = Group, shape = Group)) +
+  geom_line() +
+  scale_linetype_manual(values = c(1,2,3)) +
+  geom_point(size=3) +
+  scale_shape_manual(values = c(3,2,1)) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+  theme(legend.position = c(0.8,0.5)) +
+  scale_y_continuous(name = "mean(rat weight (g)) +/- se(rat weight (g))")
+```
+In the figure above the mean weights in certain group and certain time step can be seen as well as error bars that are $2 \times se$, where $se$ is the standard error. Again, the upward trend can be seen in all of the groups, however, this is affect a lot by some high values especially in Group 2 (the heavy weight champion rat), thus large error bars in that group. Weight ranking between groups is the same here as seen in the first figure (Group 1 < Group 2 < Group 3).
+
+### Outliers
+
+```{r}
+# Create a summary data by Group and ID with mean as the summary variable (ignoring baseline time = 1, not sure if that's needed here)
+rats_long_delta <- rats_long %>%
+  filter(time > 1) %>%
+  group_by(Group, ID) %>%
+  summarise( mean=mean(rats) ) %>%
+  ungroup()
+
+glimpse(rats_long_delta)
+```
+```{r out.width="200%"}
+# Draw a boxplot of the mean versus Group
+
+ggplot(rats_long_delta, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(rats' weight (g)), time 8-64")
+```
+All Groups have one outlier: Group 1 low value, Group 2 (the heavy weight champion), Group 3 low value.
+
+-   Bold line is the mean or the diamond?
+
+-   Black dots as the outliers
+
+-   Box as the IQR (between 25th and 75 percentile)
+
+```{r}
+# Filter out outliers IDs: 2, 12, 13
+
+rats_long_filter <- rats_long_delta[!(rats_long_delta$ID == 2 | rats_long_delta$ID == 12 | rats_long_delta$ID == 13),]
+
+# New plot
+ggplot(rats_long_filter, aes(x = Group, y = mean)) +
+  geom_boxplot() +
+  stat_summary(fun = "mean", geom = "point", shape=23, size=4, fill = "white") +
+  scale_y_continuous(name = "mean(rats' weight (g)), time 8-64")
+```
+
+
+Certainly there are no more outliers as they've been removed and the IQRs are narrower as well.
+
+### Compare the mean of multiple groups using ANOVA 
+
+```{r}
+# Load libraries
+suppressWarnings({
+library(tidyverse)
+library(rstatix)
+library(ggpubr)})
+
+res.aov <- rats_long_filter %>% anova_test(mean ~ Group)
+res.aov
+
+```
+
+### Pairwise T-Test between Groups
+
+```{r}
+pwc <- rats_long_filter %>% pairwise_t_test(mean ~ Group, p.adjust.method="bonferroni")
+pwc
+```
+According the pairwise T-test all Groups differ from each other statistically significantly. Let's look this with a plot as well.
+
+```{r}
+pwc <- pwc %>% add_xy_position(x = "Group")
+ggboxplot(rats_long_filter, x = "Group", y = "mean") + 
+  stat_pvalue_manual(pwc, label = "p.adj.signif", tip.length = 0, step.increase = 0.1) +
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+```
+
+Figure above shows the significant differences between the means of groups, which all are statistically significantly different from each other (*** meaning p<0.001). 
+
+
+### Linear model
+
+
+```{r}
+
+
+# Making baseline rat weight (time = 1)
+rats_long_filter2 <-  rats_long[!(rats_long$ID == 2 | rats_long$ID == 12 | rats_long$ID == 13),]
+rats_long_filter2 <- rats_long_filter2 %>% filter(time<2)
+
+# Making factorial into numeric value for linear model fit
+rats_long_filter$Group_num <- as.numeric(rats_long_filter$Group)
+
+# Fitting the linear model offset (maybe as constant) from the time = 1 rat weight
+fit <- lm(I(mean - rats_long_filter2$rats) ~ 0 + Group_num, data = rats_long_filter)#, offset = rats_long_filter2$rats)
+
+
+summary(fit)
+```
+This model should have starting point of time = 1 (manual intercept) rat weights put into it and therefore the estimate (slope) of the linear model is only $9.7$. I haven't been able to verify this using proper plot, since I don't know how to plot that. Despite several attempts, all plots look kinda wrong. Well, too bad. 
+
+With just the current estimate the line won't ever be inside the plot as seen bellow.
+
+
+```{r}
+plot(rats_long_filter$Group_num, rats_long_filter$mean)
+abline(lm(I(mean - rats_long_filter2$rats) ~ 0 + Group_num, data = rats_long_filter))
+```
+
+
+Below a simple model without the forced intercept and data from time = 1.
+
+```{r}
+
+# A model without forced intercept
+fit2 <- lm(mean ~ Group_num, data = rats_long_filter)
+summary(fit2)
+plot(rats_long_filter$Group_num, rats_long_filter$mean)
+abline(fit2)
+```
+
+
+Intercept ($x = 137$ when $y = 0$) and the slope is $140$. Both terms are statistically significant and the fit is looking okay. This model predicts the mean weight (outlier removed) depending on Group number in this particular setup.
+
+
+I'll fit models rat weight vs. time for every three groups in the next section. Probably wasn't needed, however, I wasn't sure what the whole linear model was getting at here.
+
+```{r}
+suppressWarnings({
+library(forestmangr)})
+rats_long_filter3 <-  rats_long[!(rats_long$ID == 2 | rats_long$ID == 12 | rats_long$ID == 13),]
+rats_long_filter_interc <- rats_long_filter3 %>% filter(time<2)
+rats_long_filter3 <- rats_long_filter3 %>% filter(time>1)
+
+fit3 <- lm_table(rats_long_filter3,rats ~ time, "Group")
+
+
+plot(rats_long_filter3$time, rats_long_filter3$rats)
+
+```
+```{r}
+fit3
+```
+
+
+The table gives parameters for three linear models divided by Group.
+
+-   Group 2 has the highest value of $R^2 = 0.72$ meaning the best fit.
+
+-   Group 2 has also the highest slope $b_1$ representing the fastest grow rate
+
+## 2. BPRS data
+
+I have to say there is not much interpretation here as gave up the section since I never got the plots in the end to work.
+
+### Plots
+
+```{r out.width="200%"}
+
+# Week on x-axis and BPRS on y-axis rats body weight
+ggplot(bprs_long, aes(x= week, y = bprs, linetype = subject)) + geom_line() + scale_linetype_manual(values = rep(1:10, times=4)) +  
+  facet_grid(. ~ treatment, labeller = label_both) +
+  theme(legend.position = "none") + 
+  scale_y_continuous(limits = c(min(bprs_long$bprs), max(bprs_long$bprs)), name = "BPRS")
+```
+
+### Linear model
+
+
+```{r}
+bprs_long$treatment_num <- as.numeric(bprs_long$treatment)
+BPRS_reg <- lm(bprs ~ week + treatment_num, data = bprs_long)
+summary(BPRS_reg)
+```
+
+Looks like that the treatment is not statistically significant factor in this model, week and intercept are.
+
+### Random Intercept Model
+
+```{r}
+suppressWarnings(library(lme4))
+# Subject variable as the random effect
+bprs_ref <- lmer(bprs ~ week + treatment_num + (1 | subject), data = bprs_long, REML = FALSE)
+summary(bprs_ref)
+
+```
+### Random Intercept and Random Slope Model
+
+```{r}
+bprs_ref1 <- lmer(bprs ~ week + treatment_num + (week | subject), data = bprs_long, REML = FALSE)
+summary(bprs_ref1)
+
+```
+```{r}
+anova(bprs_ref1, bprs_ref)
+```
+
+Looks like that there is a statistically significant difference $p = 0.026$ between models **ref** and **ref1**.
+
+### Random Intercept and Random Slope Model with interaction
+
+```{r}
+
+bprs_ref2 <- lmer(bprs ~ week * treatment_num + (week | subject), data = bprs_long, REML = FALSE)
+summary(bprs_ref2)
+
+anova(bprs_ref2, bprs_ref1)
+```
+
+As far as I can see there is no statistically significant difference between models **ref1** and **ref2**. Then again, model **ref2** might be constructed wrong.
+
+### Plots
+```{r}
+
+# Never got these plots to work, oh well...
+
+#ggplot(bprs_long, aes(x = week, y = bprs, group = subject, color = treatment)) +
+#  geom_point() +
+#  geom_line(aes(linetype = factor(treatment))) +
+#  scale_linetype_manual(values = c("solid", "dotdash")) +
+#  scale_x_continuous(name = "Weeks") +
+#  scale_y_continuous(name = "BPRS") +
+#  theme(legend.position = "top")
+
+
+
+
+
+
+
+
+```
+

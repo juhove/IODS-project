@@ -98,6 +98,9 @@ rats_long <- pivot_longer(rats, cols = -c(ID, Group), names_to = "time", values_
 
 rats_long <- rats_long %>% mutate(time = as.integer(substr(time, 3, nchar(time)))) %>% arrange(time)
 
+write_csv(bprs_long, "data/bprs_long.csv")
+write_csv(rats_long, "data/rats_long.csv")
+
 # 4. Look at the data
 
 # Names
