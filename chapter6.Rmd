@@ -1,6 +1,6 @@
 # Chapter 6, Analysis Assignment 6
 
-Although I have been working with longitudinal data a lot, I had bunch of troubles with this assignment. I guess they were mainly technical. Thus, the second part with BPRS data is not finished (plots not done and not much interpretation) and there might be some things missing from the first part as well.
+Although I have been working with longitudinal data a lot, I had bunch of troubles with this assignment. I guess they were mainly technical. Thus, the second part with BPRS data is not finished (plots not done as well as I wanted and not much interpretation) and there might be some things missing from the first part as well.
 
 
 ```{r}
@@ -317,9 +317,13 @@ anova(bprs_ref2, bprs_ref1)
 As far as I can see there is no statistically significant difference between models **ref1** and **ref2**. Then again, model **ref2** might be constructed wrong.
 
 ### Plots
-```{r}
 
-# Never got these plots to work, oh well...
+
+Plot of the observation and calculating the prediction for models **Random Intercept Model** and **Random Intercept and Random Slope Model** as their results were statistical significantly different from each other, whereas the **Random Intercept and Random Slope Model** and the **Random Intercept and Random Slope Model with interaction** did not differ statistically.
+
+
+```{r out.width="200%"}
+# Never got this one to work...oh well
 
 #ggplot(bprs_long, aes(x = week, y = bprs, group = subject, color = treatment)) +
 #  geom_point() +
@@ -330,11 +334,51 @@ As far as I can see there is no statistically significant difference between mod
 #  theme(legend.position = "top")
 
 
+# Observations
+ggplot(bprs_long, aes(x = week, y = bprs, color = subject)) +
+  geom_line() +
+  facet_grid(~treatment,labeller = label_both)+
+  scale_x_continuous(name = "Time (weeks)", breaks = seq(0, 8, 2)) +
+  scale_y_continuous(name = "BPRS (Obs)") +
+  theme(legend.position = "top")
+
+# Calculating predicitions
+bprs_long$ref1 <- predict(object=bprs_ref1)
+
+bprs_long$ref <- predict(object=bprs_ref)
+```
+
+
+### Random Intercept Model Plot
+
+
+```{r out.width="200%"}
+# Model ref plot
+ggplot(bprs_long, aes(x = week, y = ref, color = subject)) +
+  geom_line() +
+  facet_grid(~treatment,labeller = label_both)+
+  scale_x_continuous(name = "Time (weeks)", breaks = seq(0, 8, 2)) +
+  scale_y_continuous(name = "BRPS (Fit)") +
+  theme(legend.position = "top")
+```
+
+All of the models have the same slope, but the intercept ($y(x=0)$) is different.
 
 
 
+### Random Intercept and Random Slope Model Plot
 
+
+```{r out.width="200%"}
+# Model ref1 plot
+ggplot(bprs_long, aes(x = week, y = ref1, color = subject)) +
+  geom_line() +
+  facet_grid(~treatment,labeller = label_both)+
+  scale_x_continuous(name = "Time (weeks)", breaks = seq(0, 8, 2)) +
+  scale_y_continuous(name = "BPRS (Fit)") +
+  theme(legend.position = "top")
 
 
 ```
 
+Here the slopes differ from each other as well as the intercepts. I'd reckon that the latter model should model the data better based on these plots, however, difficult to say how good it would be for actual prediction.
